@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+chromadb
+sentence-transformers
+google-api-python-client
+google-auth-oauthlib
+google-auth
+dateparser

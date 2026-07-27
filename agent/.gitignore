@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.pyc
+
+# Logs
+backend/logs/
+
+# Google credentials
+backend/token.json
+backend/credentials.json
+
+# Chroma DB
+backend/memory_db/
