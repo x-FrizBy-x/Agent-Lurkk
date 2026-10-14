@@ -28,8 +28,8 @@ A lightweight AI assistant prototype for managing Google Calendar events and ans
 From the backend folder:
 
 ```powershell
-cd "C:\Users\Alexa\PycharmProjects\AI Agent\agent\backend"
-& "C:\Users\Alexa\PycharmProjects\AI Agent\.venv\Scripts\python.exe" -m uvicorn backend:app --host 127.0.0.1 --port 8000
+cd "C:\<Project Folder>\agent\backend"
+& "C:\<Project Folder>\.venv\Scripts\python.exe" -m uvicorn backend:app --host 127.0.0.1 --port 8000
 ```
 
 ### 2) Frontend
@@ -37,8 +37,8 @@ cd "C:\Users\Alexa\PycharmProjects\AI Agent\agent\backend"
 From the frontend folder:
 
 ```powershell
-cd "C:\Users\Alexa\PycharmProjects\AI Agent\agent\frontend"
-& "C:\Users\Alexa\PycharmProjects\AI Agent\.venv\Scripts\python.exe" -m http.server 8001
+cd "C:\<Project Folder>\agent\frontend"
+& "C:\<Project Folder>\.venv\Scripts\python.exe" -m http.server 8001
 ```
 
 Then open:
