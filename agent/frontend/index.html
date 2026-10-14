@@ -9,14 +9,15 @@
 
 <div class="app-container">
     <header>
+        <div class="header-badge">AI Assistant</div>
         <h1>Agent Lurkk</h1>
     </header>
 
-    <main id="chatBox" class="chat-box"></main>
+    <main id="chatBox" class="chat-box" aria-live="polite"></main>
 
     <div class="input-area">
-        <input id="userInput" type="text" placeholder="Type your message..." />
-        <button id="sendBtn" onclick="sendMessage()">Send</button>
+        <input id="userInput" type="text" placeholder="Type your message..." aria-label="Message input" />
+        <button id="sendBtn" type="button">Send</button>
     </div>
 </div>
 

@@ -94,14 +94,18 @@ def detect_calendar_intent(user_message: str) -> Optional[str]:
 def call_llama3(prompt: str) -> str:
     logger.info(f"LLaMA prompt: {prompt}")
 
-    result = subprocess.run(
-        ["ollama", "run", "llama3"],
-        input=prompt,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace"
-    )
+    try:
+        result = subprocess.run(
+            ["ollama", "run", "llama3"],
+            input=prompt,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace"
+        )
+    except FileNotFoundError:
+        logger.error("Ollama executable was not found in PATH")
+        raise RuntimeError("The AI model is not available right now. Please make sure Ollama is installed and running.")
 
     output = result.stdout.strip()
 
@@ -180,7 +184,6 @@ def extract_event_json(user_message: str) -> Optional[dict]:
     logger.info(f"Raw JSON from LLM: {raw}")
 
     try:
-        # Extract JSON from LLaMA response
         start = raw.find("{")
         end = raw.rfind("}") + 1
 
@@ -189,13 +192,11 @@ def extract_event_json(user_message: str) -> Optional[dict]:
             return None
 
         json_text = raw[start:end]
-
-        event = json.loads(raw)
+        event = json.loads(json_text)
 
         # Normalize wrong keys
-        if "title" not in event:
-            if "meeting_name" in event:
-                event["title"] = event.pop("meeting_name")
+        if "title" not in event and "meeting_name" in event:
+            event["title"] = event.pop("meeting_name")
 
         # Normalize duration
         if not event.get("duration_minutes"):
@@ -216,12 +217,23 @@ def extract_event_json(user_message: str) -> Optional[dict]:
 # ---------------------------------------------------------
 
 def format_event_time(date_string):
+    if not date_string:
+        return "Unknown time"
 
-    dt = datetime.fromisoformat(
-        date_string.replace("Z", "+00:00")
-    )
+    try:
+        dt = datetime.fromisoformat(date_string.replace("Z", "+00:00"))
+    except ValueError:
+        try:
+            dt = datetime.fromisoformat(f"{date_string}T00:00:00")
+        except ValueError:
+            return str(date_string)
 
     return dt.strftime("%d %B %Y at %H:%M")
+
+
+def get_event_start_value(event: dict) -> Optional[str]:
+    start = event.get("start") or {}
+    return start.get("dateTime") or start.get("date")
 
 # ---------------------------------------------------------
 # Memory Helpers
@@ -353,12 +365,19 @@ def handle_calendar_actions(user_message: str) -> Optional[str]:
         if not events:
             return "You have no upcoming events."
 
-        formatted = "\n".join(
-            f"- {e.get('summary', 'No title')} on "
-            f"{format_event_time(e['start']['dateTime'])}"
-            for e in events
-        )
-        return f"Here are your upcoming events:\n{formatted}"
+        formatted_lines = []
+        for e in events:
+            event_start = get_event_start_value(e)
+            if not event_start:
+                continue
+            formatted_lines.append(
+                f"- {e.get('summary', 'No title')} on {format_event_time(event_start)}"
+            )
+
+        if not formatted_lines:
+            return "You have no upcoming events."
+
+        return f"Here are your upcoming events:\n" + "\n".join(formatted_lines)
 
     # CREATE EVENT
     if intent == "create":
@@ -481,7 +500,10 @@ def chat(req: ChatRequest):
     )
 
     # 4. Call llama3
-    llm_answer = call_llama3(prompt)
+    try:
+        llm_answer = call_llama3(prompt)
+    except RuntimeError as exc:
+        return ChatResponse(response=str(exc), memory_used=relevant_docs)
 
     # 5. Store memory
     maybe_store_memory(req.user_id, user_message)

@@ -1,17 +1,32 @@
-async function sendMessage() {
-    const input = document.getElementById("userInput");
-    const chatBox = document.getElementById("chatBox");
+const input = document.getElementById("userInput");
+const sendBtn = document.getElementById("sendBtn");
+const chatBox = document.getElementById("chatBox");
 
+function appendMessage(text, sender) {
+    const message = document.createElement("div");
+    message.className = `message ${sender}`;
+    message.textContent = text;
+    chatBox.appendChild(message);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function setLoading(isLoading) {
+    sendBtn.disabled = isLoading;
+    sendBtn.textContent = isLoading ? "Sending..." : "Send";
+    input.disabled = isLoading;
+}
+
+async function sendMessage() {
     const message = input.value.trim();
     if (!message) return;
 
-    // Show user message
-    chatBox.innerHTML += `<div class="message user">${message}</div>`;
-    chatBox.scrollTop = chatBox.scrollHeight;
+    appendMessage(message, "user");
+    input.value = "";
+    setLoading(true);
 
     const payload = {
         user_id: "alexander",
-        message: message,
+        message,
         session_id: "default"
     };
 
@@ -25,14 +40,19 @@ async function sendMessage() {
         });
 
         const data = await response.json();
-
-        // Show agent reply
-        chatBox.innerHTML += `<div class="message agent">${data.response}</div>`;
-        chatBox.scrollTop = chatBox.scrollHeight;
-
+        appendMessage(data.response || "I’m not sure how to respond to that.", "agent");
     } catch (err) {
-        chatBox.innerHTML += `<div class="message agent">Error: Could not reach backend.</div>`;
+        appendMessage("Error: Could not reach backend.", "agent");
+    } finally {
+        setLoading(false);
+        input.focus();
     }
-
-    input.value = "";
 }
+
+sendBtn.addEventListener("click", sendMessage);
+input.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+        event.preventDefault();
+        sendMessage();
+    }
+});
