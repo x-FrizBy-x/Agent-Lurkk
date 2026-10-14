@@ -88,7 +88,7 @@ def detect_calendar_intent(user_message: str) -> Optional[str]:
 
 
 # ---------------------------------------------------------
-# LLaMA‑3 via Ollama
+# LLaMA‑3.1 via Ollama
 # ---------------------------------------------------------
 
 def call_llama3(prompt: str) -> str:
@@ -96,7 +96,7 @@ def call_llama3(prompt: str) -> str:
 
     try:
         result = subprocess.run(
-            ["ollama", "run", "llama3"],
+            ["ollama", "run", "llama3.1"],
             input=prompt,
             capture_output=True,
             text=True,
@@ -490,7 +490,7 @@ def chat(req: ChatRequest):
     relevant_docs = get_relevant_memory(user_message)
     memory_context = format_memory_context(relevant_docs)
 
-    # 3. Build llama3 prompt
+    # 3. Build llama3.1 prompt
     prompt = (
         "You are AgentLurkk, an AI assistant.\n"
         "Use memory context if helpful.\n\n"
@@ -499,7 +499,7 @@ def chat(req: ChatRequest):
         "Assistant:"
     )
 
-    # 4. Call llama3
+    # 4. Call llama3.1
     try:
         llm_answer = call_llama3(prompt)
     except RuntimeError as exc:
